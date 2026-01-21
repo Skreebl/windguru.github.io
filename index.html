@@ -2,41 +2,54 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>Windguru Forecast – Прогноз вітру</title>
+  <title>Windguru Forecast</title>
 
-  <meta name="description" content="Прогноз вітру та погоди з Windguru. Перемикання мов UA / PT.">
+  <meta name="description" content="Прогноз вітру та погоди з Windguru.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f4f6f8;
       color: #111;
     }
 
     header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       background: #0f172a;
       color: #fff;
-      padding: 16px 24px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     header h1 {
-      font-size: 18px;
+      font-size: 16px;
       margin: 0;
     }
 
     main {
-      padding: 24px;
+      padding: 12px;
     }
 
     footer {
       text-align: center;
-      padding: 16px;
-      font-size: 14px;
+      padding: 12px;
+      font-size: 13px;
       color: #555;
     }
 
@@ -44,7 +57,7 @@
     .lang-toggle {
       display: flex;
       background: #1e293b;
-      border-radius: 20px;
+      border-radius: 999px;
       overflow: hidden;
       border: 1px solid #334155;
     }
@@ -54,16 +67,29 @@
       border: none;
       background: transparent;
       color: #cbd5f5;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
+      font-size: 14px;
     }
 
     .lang-toggle button.active {
       background: #38bdf8;
       color: #000;
     }
+
+    /* Mobile optimization */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 14px;
+      }
+
+      main {
+        padding: 8px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
 <header>
@@ -80,72 +106,63 @@
 </main>
 
 <footer>
-  © 2026 Wind Forecast · Data by Windguru
+  © 2026 · Data by Windguru
 </footer>
 
 <script>
   function loadWindguru(lang) {
-    // оновлюємо lang у html (SEO)
     document.documentElement.lang = lang === "ua" ? "uk" : "pt";
 
-    // кнопки
     document.getElementById("btn-ua").classList.toggle("active", lang === "ua");
     document.getElementById("btn-pt").classList.toggle("active", lang === "pt");
 
-    // зберігаємо мову
     localStorage.setItem("wg_lang", lang);
 
-    // прибрати старий віджет
     const root = document.getElementById("wg-root");
     root.innerHTML = "";
 
-    // унікальний id (ОБОВʼЯЗКОВО)
     const uid = "wg_" + lang + "_" + Date.now();
-
-    // створюємо script-заглушку
     const placeholder = document.createElement("script");
     placeholder.id = uid;
     root.appendChild(placeholder);
 
-    // класичний loader Windguru
-    (function (window, document) {
-      var loader = function () {
-        var arg = [
-          "s=159114",
-          "m=3",
-          "mw=84",
-          "uid=" + uid,
-          "wj=kmh",
-          "tj=c",
-          "waj=m",
-          "tij=cm",
-          "odh=0",
-          "doh=24",
-          "fhours=240",
-          "hrsm=1",
-          "vt=forecasts",
-          "lng=" + lang,
-          "ts=2",
-          "p=WINDSPD,GUST,MWINDSPD,SMER,TMPE,TMP,CDC,APCP1s,RH,PERPW,PWEN,HTSGW,RATING"
-        ];
+    (function () {
+      const arg = [
+        "s=159114",
+        "m=3",
+        "mw=84",
+        "uid=" + uid,
+        "wj=kmh",
+        "tj=c",
+        "waj=m",
+        "tij=cm",
+        "odh=0",
+        "doh=24",
+        "fhours=240",
+        "hrsm=1",
+        "vt=forecasts",
+        "lng=" + lang,
+        "ts=2",
+        "p=WINDSPD,GUST,TMPE,TMP,CDC,APCP1s,RH,RATING"
+      ];
 
-        var script = document.createElement("script");
-        var firstScript = document.getElementsByTagName("script")[0];
-        script.src = "https://www.windguru.cz/js/widget.php?" + arg.join("&");
-        firstScript.parentNode.insertBefore(script, firstScript);
-      };
-
-      loader();
-    })(window, document);
+      const script = document.createElement("script");
+      script.src = "https://www.windguru.cz/js/widget.php?" + arg.join("&");
+      document.body.appendChild(script);
+    })();
   }
 
   function setLanguage(lang) {
     loadWindguru(lang);
   }
 
-  // стартова мова
   const savedLang = localStorage.getItem("wg_lang") || "ua";
   loadWindguru(savedLang);
+
+  // Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
 </script>
 
 </body>
