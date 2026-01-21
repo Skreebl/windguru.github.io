@@ -1,35 +1,152 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <title>Test Page</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .box {
-            background: #fff;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Windguru Forecast – Прогноз вітру</title>
+
+  <meta name="description" content="Прогноз вітру та погоди з Windguru. Перемикання мов UA / PT.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #111;
+    }
+
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    main {
+      padding: 24px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* Toggle */
+    .lang-toggle {
+      display: flex;
+      background: #1e293b;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .lang-toggle button {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      color: #cbd5f5;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .lang-toggle button.active {
+      background: #38bdf8;
+      color: #000;
+    }
+  </style>
 </head>
 <body>
 
-<div class="box">
-    <h1>Тестова сторінка</h1>
-    <p>index.html працює 👍</p>
-    <button onclick="alert('Hello!')">Натисни мене</button>
-</div>
+<header>
+  <h1>Windguru Forecast</h1>
+
+  <div class="lang-toggle">
+    <button id="btn-ua" onclick="setLanguage('ua')">UA</button>
+    <button id="btn-pt" onclick="setLanguage('pt')">PT</button>
+  </div>
+</header>
+
+<main>
+  <div id="wg-root"></div>
+</main>
+
+<footer>
+  © 2026 Wind Forecast · Data by Windguru
+</footer>
+
+<script>
+  function loadWindguru(lang) {
+    // оновлюємо lang у html (SEO)
+    document.documentElement.lang = lang === "ua" ? "uk" : "pt";
+
+    // кнопки
+    document.getElementById("btn-ua").classList.toggle("active", lang === "ua");
+    document.getElementById("btn-pt").classList.toggle("active", lang === "pt");
+
+    // зберігаємо мову
+    localStorage.setItem("wg_lang", lang);
+
+    // прибрати старий віджет
+    const root = document.getElementById("wg-root");
+    root.innerHTML = "";
+
+    // унікальний id (ОБОВʼЯЗКОВО)
+    const uid = "wg_" + lang + "_" + Date.now();
+
+    // створюємо script-заглушку
+    const placeholder = document.createElement("script");
+    placeholder.id = uid;
+    root.appendChild(placeholder);
+
+    // класичний loader Windguru
+    (function (window, document) {
+      var loader = function () {
+        var arg = [
+          "s=159114",
+          "m=3",
+          "mw=84",
+          "uid=" + uid,
+          "wj=kmh",
+          "tj=c",
+          "waj=m",
+          "tij=cm",
+          "odh=0",
+          "doh=24",
+          "fhours=240",
+          "hrsm=1",
+          "vt=forecasts",
+          "lng=" + lang,
+          "ts=2",
+          "p=WINDSPD,GUST,MWINDSPD,SMER,TMPE,TMP,CDC,APCP1s,RH,PERPW,PWEN,HTSGW,RATING"
+        ];
+
+        var script = document.createElement("script");
+        var firstScript = document.getElementsByTagName("script")[0];
+        script.src = "https://www.windguru.cz/js/widget.php?" + arg.join("&");
+        firstScript.parentNode.insertBefore(script, firstScript);
+      };
+
+      loader();
+    })(window, document);
+  }
+
+  function setLanguage(lang) {
+    loadWindguru(lang);
+  }
+
+  // стартова мова
+  const savedLang = localStorage.getItem("wg_lang") || "ua";
+  loadWindguru(savedLang);
+</script>
 
 </body>
 </html>
